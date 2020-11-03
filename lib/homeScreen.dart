@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:http/http.dart' as http;
+import 'backend.dart';
+import 'utils.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -15,6 +17,8 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
   }
 
+
+  Utils utils = Utils();
   GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
   Map applyedFilters = {};
   List searchResults = ["N1", "N2"];
@@ -155,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
   );
   }
 
-  AppBar appBar(BuildContext context) {
+  AppBar textFieldAppBar(BuildContext context) {
     return AppBar(
       iconTheme: IconThemeData(color: Colors.white, size: 44),
       leading: IconButton(
@@ -176,8 +180,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
               placeholder: "Search millions of books",
             
-              onSubmitted: (String searchQuery) {
-                
+              onSubmitted: (String searchQuery) async{
+                String request = utils.buildRequest(
+                  type: "search",
+                  query: searchQuery,
+                  filters: hints
+                  );
+                dynamic response = await Backend().apiCall(request);
+                // Continue magic here
               },
             ),
           )
@@ -187,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _drawerKey,
-      appBar: appBar(context),
+      appBar: textFieldAppBar(context),
       drawer: searchFilterDrawer(context),
       body: GestureDetector(
         onTap: () {
