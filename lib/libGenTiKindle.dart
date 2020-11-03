@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'homeScreen.dart';
 
-class GenLibToKindle extends StatefulWidget {
-  _GenLibToKindleState createState() => _GenLibToKindleState();
+class LibGenToKindle extends StatefulWidget {
+  _LibGenToKindleState createState() => _LibGenToKindleState();
 }
 
-class _GenLibToKindleState extends State<GenLibToKindle> {
+class _LibGenToKindleState extends State<LibGenToKindle> {
   @override
   void initState() {
     setState(() {});

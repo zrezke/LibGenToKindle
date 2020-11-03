@@ -1,4 +1,4 @@
-package com.example.GenLibToKindle
+package com.example.LibGenToKindle
 
 import io.flutter.embedding.android.FlutterActivity
 

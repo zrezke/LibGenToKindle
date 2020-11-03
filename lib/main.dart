@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'genLibToKindle.dart';
+import 'libGenTiKindle.dart';
 
 void main() {
-  runApp(GenLibToKindle());
+  runApp(LibGenToKindle());
 }
