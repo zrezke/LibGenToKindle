@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +12,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  dynamic apiCall;
   @override
   void initState() {
-    setState(() {});
+    Timer.periodic(Duration(milliseconds: 10), (timer) {
+      setState(() {
+      });
+    });
+
     super.initState();
   }
 
@@ -90,6 +96,46 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List hints = [null, null, null];
+
+
+  Widget mainWidget({apiCall}) {
+  if (apiCall == null) {  
+    return  Image(
+        image: AssetImage("assets/images/GenLibLogo.png")
+      );
+    }
+
+  else {
+    return FutureBuilder(
+      future: apiCall,
+      builder: (context, AsyncSnapshot <Map> data) {
+        Widget returnWidget;
+        if (data.hasData) {
+          List keys = data.data.keys.toList();
+          returnWidget = 
+           ListView.builder(
+            itemCount: data.data.keys.length,
+            itemBuilder: (context, index) {
+              String title = data.data[keys[index]]["title"];
+              print(title);
+              return Card(
+                child: ListTile(
+                  title: Text(title),
+                ),
+              );
+            }
+          );
+       }
+       else {
+         returnWidget = CircularProgressIndicator();
+       }
+
+       return returnWidget;
+      }
+    );
+  }
+
+}
 
   DropdownButton searchFiltersBuilder(BuildContext context, int idx) {
     String key = searchFilterItems.keys.toList()[idx];
@@ -180,13 +226,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
               placeholder: "Search millions of books",
             
-              onSubmitted: (String searchQuery) async{
-                String request = utils.buildRequest(
+              onSubmitted: (String searchQuery) async {
+                String _request = utils.buildRequest(
                   type: "search",
                   query: searchQuery,
                   filters: hints
                   );
-                dynamic response = await Backend().apiCall(request);
+                setState(() {
+                  apiCall = Backend().apiCall(_request);
+                });
                 // Continue magic here
               },
             ),
@@ -203,6 +251,11 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () {
           FocusScope.of(context).requestFocus(new FocusNode());
         },
+        child: Center(
+          child: mainWidget(
+            apiCall: apiCall
+            )
+        )
       )
     );
   }
