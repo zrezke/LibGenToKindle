@@ -23,9 +23,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  material_floating_search_bar: ^0.2.2
-  scrapy: ^0.0.3
   html: ^0.14.0+4
+  google_fonts: ^1.1.1
 
 
   # The following adds the Cupertino Icons font to your application.

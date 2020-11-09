@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'backend.dart';
 import 'utils.dart';
 
@@ -27,7 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Utils utils = Utils();
   GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
   Map applyedFilters = {};
-  List searchResults = ["N1", "N2"];
   Map searchFilterItems = {
     "Search in": [
       "LibGen(Sci-Tech)",
@@ -55,6 +54,15 @@ class _HomeScreenState extends State<HomeScreen> {
         "Extension"
       ]
     };
+
+  //  Returns user to default home screen on back button press
+  //  after bad API call.
+  Future <bool> _onWillPop() async{
+    setState(() {
+      apiCall = null;
+    });
+    return false;
+  }
 
   SliverChildBuilderDelegate searchResultListView(
       BuildContext context, List searchResults) {
@@ -97,12 +105,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List hints = [null, null, null];
 
-
   Widget mainWidget({apiCall}) {
   if (apiCall == null) {  
-    return  Image(
-        image: AssetImage("assets/images/GenLibLogo.png")
-      );
+    return  Center(
+      child: Container(
+        padding: EdgeInsets.only(bottom: 150),
+        child: Text(
+          "Library Genesis",
+          textAlign: TextAlign.center,
+          style: GoogleFonts.knewave(
+            fontSize: 40,
+            color: Color(0x99ffffff)
+          )
+        ),
+      )
+    );
     }
 
   else {
@@ -112,22 +129,121 @@ class _HomeScreenState extends State<HomeScreen> {
         Widget returnWidget;
         if (data.hasData) {
           List keys = data.data.keys.toList();
-          returnWidget = 
-           ListView.builder(
-            itemCount: data.data.keys.length,
-            itemBuilder: (context, index) {
-              String title = data.data[keys[index]]["title"];
-              print(title);
-              return Card(
-                child: ListTile(
-                  title: Text(title),
-                ),
-              );
-            }
-          );
-       }
+          if (keys.contains("Message")) {
+            returnWidget = 
+            WillPopScope(
+              onWillPop: _onWillPop,
+              child: Center(
+                child: Container(
+                  padding: EdgeInsets.only(bottom: 150),
+                  child: Text(
+                    'Sorry, \n' + 
+                      data.data["Message"],
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.zillaSlab(
+                      fontSize: 30,
+                      color: Color(0x99ffffff)
+                    )
+                  ),
+                )
+              )
+            );
+          }
+          else {
+            returnWidget = 
+            ListView.builder(
+              itemCount: data.data.keys.length,
+              itemBuilder: (context, index) {
+              double _containerWidth = 
+                MediaQuery.of(context).size.width * 0.8;
+                var item = data.data[keys[index]];
+                String title = item["title"];
+                List author = item["author"].toList();
+                String publisher = item["publisher"];
+                String year = item["year"];
+                String language = item["language"];
+                String size = item["size"];
+                String fileType = item["fileType"];
+                //  Implement link mirrors !!!
+                
+                return Container(
+                  width: _containerWidth,
+                  alignment: Alignment.center,
+                  height: 100,
+                  child: Card(
+                    child: Container(
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 75,
+                            color: Colors.black12,
+                            alignment: Alignment.center,
+                            child: Text(
+                              language,
+                              style: TextStyle(
+                              )
+                            ),
+                          ),
+                          Container(
+                            child: new Flexible(
+                              flex: 1,
+                              child: Container(
+                                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                alignment: Alignment.center,
+                                child: Wrap(
+                                  direction: Axis.vertical,
+                                  children: [
+                                    Text(
+                                      title,
+                                    ),
+                                    Text(
+                                      publisher,
+                                      style: TextStyle(
+                                        fontSize: 12
+                                      )
+                                    )
+                                  ],
+                                ),
+                              )
+                            )
+                          ),
+                          Container(
+                            alignment: Alignment.centerRight,
+                            child: Container(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [ 
+                                  IconButton(
+                                    icon: Icon(Icons.download_rounded
+                                    ),
+                                    onPressed: () {
+
+                                    },
+                                  ),
+                                  Text(
+                                    fileType,
+                                    style: TextStyle(
+                                      fontSize: 12
+                                    )
+                                  ) 
+                                ]
+                              )
+                            )
+                          )
+                        ],
+                      ),
+                    ),
+                  )
+                );
+              }
+            );
+          }
+        }
        else {
-         returnWidget = CircularProgressIndicator();
+         returnWidget = Center(
+          child: CircularProgressIndicator(
+          )
+         );
        }
 
        return returnWidget;
@@ -142,6 +258,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _getHint(hints[idx], key, idx);
     var hint = hints[idx];
     return DropdownButton(
+      style: TextStyle(
+        ),
       key: Key(idx.toString()),
       hint: Text(hint),
       items: _makeDropdownMenuItems(key),
@@ -155,58 +273,92 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Drawer searchFilterDrawer(BuildContext context) {
-    return Drawer(
-    child: Column(
-      children: <Widget>[
-        DrawerHeader(
-          padding: EdgeInsets.all(0),
-          margin: EdgeInsets.all(0),
-          child: Image(
-            image: AssetImage("assets/images/GenLibLogo.png"),
-            fit: BoxFit.cover,
+  Widget searchFilterDrawer(BuildContext context) {
+    return Theme(
+      data: Theme.of(context).copyWith(
+       canvasColor: Color(0x57000000)
+      ),
+    child: Drawer(
+      child: Container(
+        child: Column(
+          children: <Widget>[
+            DrawerHeader(
+              padding: EdgeInsets.all(0),
+              margin: EdgeInsets.all(0),
+              child: Container(
+                padding: EdgeInsets.only(
+                  top:45
+                  ),
+                child: Text(
+                  "Library Genesis",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.knewave(
+                    color: Colors.white,
+                    fontSize: 30
+                  ),
+                )
+              )
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(0, 20, 0, 0)
+            ),
+            Divider(),
+            Container(
+              margin: EdgeInsets.fromLTRB(20, 0, 20, 0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Color(0xffffffff),
+              ),
+              child: ListTile(
+                title: Text(
+                  "Search in:",
+                  ), 
+                subtitle: searchFiltersBuilder(context, 0),
+              )
+            ),
+            Divider(),
+            Container(
+              margin: EdgeInsets.fromLTRB(20, 0, 20, 0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Color(0xffffffff),
+              ),
+              child: ListTile(
+                title: Text("Search with mask (word*)"), 
+                subtitle: searchFiltersBuilder(context, 1),
+              ),
+            ),
+            Divider(),
+            Container(
+              margin: EdgeInsets.fromLTRB(20, 0, 20, 0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Color(0xffffffff),
+              ),
+              child: ListTile(
+                title: Text("Search in fields"), 
+                subtitle: searchFiltersBuilder(context, 2),
+              )
+            ),
+            FlatButton(
+              color: Colors.amber,
+              child: Text("Reset to default"),
+              onPressed: () {
+                setState(() {
+                  hints = [null, null, null];
+                });
+              },
             )
-        ),  
-        Padding(
-          padding: EdgeInsets.fromLTRB(0, 20, 0, 0)
-        ),
-        Divider(),
-        Card(
-          child: ListTile(
-            title: Text("Search in:"), 
-            subtitle: searchFiltersBuilder(context, 0),
-          )
-        ),
-        Divider(),
-        Card(
-          child: ListTile(
-            title: Text("Search with mask (word*)"), 
-            subtitle: searchFiltersBuilder(context, 1),
-          ),
-        ),
-        Divider(),
-        Card(
-          child: ListTile(
-            title: Text("Search in fields"), 
-            subtitle: searchFiltersBuilder(context, 2),
-          )
-        ),
-        FlatButton(
-          color: Colors.amber,
-          child: Text("Reset to default"),
-          onPressed: () {
-            setState(() {
-              hints = [null, null, null];
-            });
-          },
+          ],
         )
-      ],
-    ),
-  );
+      )
+    )
+    );
   }
 
   AppBar textFieldAppBar(BuildContext context) {
     return AppBar(
+      backgroundColor: Color(0xffD59600),
       iconTheme: IconThemeData(color: Colors.white, size: 44),
       leading: IconButton(
         icon: Icon(Icons.menu),
@@ -235,7 +387,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 setState(() {
                   apiCall = Backend().apiCall(_request);
                 });
-                // Continue magic here
               },
             ),
           )
@@ -244,6 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       key: _drawerKey,
       appBar: textFieldAppBar(context),
       drawer: searchFilterDrawer(context),
@@ -251,7 +403,16 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () {
           FocusScope.of(context).requestFocus(new FocusNode());
         },
-        child: Center(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              end: Alignment.bottomRight,
+              begin: Alignment.topRight,
+              colors: <Color> [
+                Color(0xffE2A001),
+                Color(0xff4E4226)]
+            )
+          ),
           child: mainWidget(
             apiCall: apiCall
             )
