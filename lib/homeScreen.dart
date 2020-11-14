@@ -13,12 +13,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   dynamic apiCall;
+  dynamic _previousData;
   @override
   void initState() {
-    Timer.periodic(Duration(milliseconds: 10), (timer) {
       setState(() {
       });
-    });
 
     super.initState();
   }
@@ -127,7 +126,8 @@ class _HomeScreenState extends State<HomeScreen> {
       future: apiCall,
       builder: (context, AsyncSnapshot <Map> data) {
         Widget returnWidget;
-        if (data.hasData) {
+        if (data.hasData && data.data != _previousData) {
+          _previousData = data.data;
           List keys = data.data.keys.toList();
           if (keys.contains("Message")) {
             returnWidget = 
@@ -245,8 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
           )
          );
        }
-
-       return returnWidget;
+      return returnWidget;
       }
     );
   }
