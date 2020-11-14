@@ -22,7 +22,7 @@ class Utils {
                   break;
                 case 1:
                   request = request + "search_with_mask=" + filters[i] + "&";
-                  break;
+                  break;  
                 case 2:
                   request = request + "search_in_fields=" + filters[i] + "&";
                   break;

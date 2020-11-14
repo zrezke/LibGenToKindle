@@ -6,7 +6,12 @@ class Backend {
 
   Future <Map> apiCall(String request) async{
     try{
-      http.Response response = await http.get(request);
+      http.Response response = await http.get(
+        request,
+        headers: {
+          "Keep-Alive": "timeout=1"
+        }
+        );
 
     if (response.statusCode == 200) {
       Map result = jsonDecode(response.body);
