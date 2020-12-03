@@ -1,25 +1,28 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 import 'package:random_string/random_string.dart';
 import 'package:dio/dio.dart';
 
-
+/// ADD KEY
 class Backend {
-  String apiKey = "<your api key here>";
+  String apiKey = "";
 
   Dio dio = new Dio();
   Future <Map> apiCall(String request) async{
     try{
-      http.Response response = await http.get(
+      Response response = await dio.get(
         request,
-        headers: {
-          "Keep-Alive": "timeout=1"
-        }
+        options: Options(
+          headers: {
+            "Keep-Alive": "timeout=1"
+          }
+        )
         );
 
-    if (response.statusCode == 200) {
-      Map result = jsonDecode(response.body);
+
+    if (response.statusCode == 200) { 
+      Map result = Map.castFrom(response.data) as Map;
       return result;
     }
     else {
@@ -31,7 +34,7 @@ class Backend {
     }
   }
   
-  Future <dynamic> convertApi({Map serverInfo}) async{
+  Future <dynamic> convertApi({Map serverInfo, @required Map bookData}) async{
     Map <String, String> headers = {
         'x-oc-api-key': apiKey,
         'content-type': "multipart/form-data",
@@ -49,9 +52,10 @@ class Backend {
           }
         ]
       }""";
-      http.Response response = await http.post(url, headers: headers, body: body);
-      Map result = jsonDecode(response.body);
+      Response response = await dio.post(url, options: Options(headers: headers), data: body);
+      Map result = jsonDecode(response.data);
       return convertApi(
+        bookData: bookData,
         serverInfo: {
           "id": result["id"],
           "server": result["server"]
@@ -62,16 +66,11 @@ class Backend {
     // Upload file to convert server.
     else {
       headers["x-oc-upload-uuid"] = randomString(10);
-      FormData form = new FormData.fromMap({
-        "title": "Six easy pieces",
-        "author": "Richard Faymen",
-
-
+      FormData form = new FormData.fromMap(
+        // Title author mirrors
+          bookData
         // ADD PATH TO DOWNLOADED FILE and FILE NAME programatically
-        "file": await MultipartFile.fromFile(r"D:\dev\flutter\LibGenToKindle\lib\testFile.epub", filename:"testFile")
-      
-      
-      });
+      );
       String url = serverInfo["server"] + "/upload-file/" + serverInfo["id"];
       Response response = await dio.post(url, data: form,options: Options(headers: headers));
       Map result = jsonDecode(response.toString());
@@ -95,15 +94,10 @@ class Backend {
     return result;
   }
 
-  void downloadFile(String uri) async{
-    http.get(uri).then((response) {
-
-
-      // Instead of test completed give it a propper name and stor it in a proper location!!!
-        new File("testCompleted").writeAsBytes(response.bodyBytes);
-
-
-  });
+  /// WORK ON THIS ERROR: ADD PERMISSIONS TO WRITE FILES
+  void downloadFile(String uri, String title, String fileExt) async{
+    Response downloadLink = await dio.get(uri); 
+    await dio.download(downloadLink.toString(), new File("download/$title.$fileExt"));
   }
 
 }

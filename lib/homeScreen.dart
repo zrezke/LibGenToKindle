@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'backend.dart';
 import 'utils.dart';
+import 'partial_widgets/ResultListTile.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -14,12 +15,20 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   dynamic apiCall;
   dynamic _previousData;
+  final Backend backend = new Backend();
   @override
   void initState() {
       setState(() {
       });
 
     super.initState();
+  }
+
+  void callback(Future _apicall) {
+    print(_apicall);
+    setState(() {
+      apiCall = _apicall;
+    });
   }
 
 
@@ -104,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List hints = [null, null, null];
 
-  Widget mainWidget({apiCall}) {
+  Widget widgetManager({apiCall}) {
   if (apiCall == null) {  
     return  Center(
       child: Container(
@@ -124,11 +133,13 @@ class _HomeScreenState extends State<HomeScreen> {
   else {
     return FutureBuilder(
       future: apiCall,
-      builder: (context, AsyncSnapshot <Map> data) {
+      builder: (context, AsyncSnapshot data) {
         Widget returnWidget;
         if (data.hasData && data.data != _previousData) {
           _previousData = data.data;
           List keys = data.data.keys.toList();
+          
+          /// If: no usable info from API
           if (keys.contains("Message")) {
             returnWidget = 
             WillPopScope(
@@ -149,102 +160,46 @@ class _HomeScreenState extends State<HomeScreen> {
               )
             );
           }
-          else {
+          ///  If: API CALL RETURNED SEARCH RESULTS
+          else{
             returnWidget = 
-            ListView.builder(
-              itemCount: data.data.keys.length,
-              itemBuilder: (context, index) {
-              double _containerWidth = 
-                MediaQuery.of(context).size.width * 0.8;
-                var item = data.data[keys[index]];
-                String title = item["title"];
-                List author = item["author"].toList();
-                String publisher = item["publisher"];
-                String year = item["year"];
-                String language = item["language"];
-                String size = item["size"];
-                String fileType = item["fileType"];
-                //  Implement link mirrors !!!
-                
-                return Container(
-                  width: _containerWidth,
-                  alignment: Alignment.center,
-                  height: 100,
-                  child: Card(
-                    child: Container(
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 75,
-                            color: Colors.black12,
-                            alignment: Alignment.center,
-                            child: Text(
-                              language,
-                              style: TextStyle(
-                              )
-                            ),
-                          ),
-                          Container(
-                            child: new Flexible(
-                              flex: 1,
-                              child: Container(
-                                padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                alignment: Alignment.center,
-                                child: Wrap(
-                                  direction: Axis.vertical,
-                                  children: [
-                                    Text(
-                                      title,
-                                    ),
-                                    Text(
-                                      publisher,
-                                      style: TextStyle(
-                                        fontSize: 12
-                                      )
-                                    )
-                                  ],
-                                ),
-                              )
-                            )
-                          ),
-                          Container(
-                            alignment: Alignment.centerRight,
-                            child: Container(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [ 
-                                  IconButton(
-                                    icon: Icon(Icons.download_rounded
-                                    ),
-                                    onPressed: () {
-
-                                    },
-                                  ),
-                                  Text(
-                                    fileType,
-                                    style: TextStyle(
-                                      fontSize: 12
-                                    )
-                                  ) 
-                                ]
-                              )
-                            )
-                          )
-                        ],
-                      ),
-                    ),
-                  )
-                );
-              }
-            );
+              ListView.builder(
+                itemCount: data.data.keys.length,
+                itemBuilder: (context, index) {
+                double _containerWidth = 
+                  MediaQuery.of(context).size.width * 0.8;
+                  var item = data.data[keys[index]];
+                  String title = item["title"];
+                  List author = item["author"];
+                  String publisher = item["publisher"];
+                  String year = item["year"];
+                  String language = item["language"];
+                  String size = item["size"];
+                  String fileType = item["fileType"];
+                  List mirrors = item["mirrors"];
+                  
+                  return ResultListTile(
+                    this.callback,
+                    backend: this.backend,
+                    containerWidth: _containerWidth,
+                    language: language,
+                    title: title,publisher: publisher,
+                    fileType: fileType,
+                    mirrors: mirrors,
+                    author: author
+                  );
+                }
+              );
+            }
           }
-        }
+        /// IF API IS NOT FINISHED YET SHOW PROGRESS INDICATOR
        else {
          returnWidget = Center(
           child: CircularProgressIndicator(
           )
          );
        }
+       
       return returnWidget;
       }
     );
@@ -384,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   filters: hints
                   );
                 setState(() {
-                  apiCall = Backend().apiCall(_request);
+                  apiCall = this.backend.apiCall(_request);
                 });
               },
             ),
@@ -412,7 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Color(0xff4E4226)]
             )
           ),
-          child: mainWidget(
+          child: widgetManager(
             apiCall: apiCall
             )
         )

@@ -33,12 +33,11 @@ class Utils {
         request = request + "query=$query&";
         break;
 
-      case "downloaad":
-        request = request + link;
+      case "download":
+        request = request + "mirror=$link";
         break;
+
     }
-
-    return request;
+  return request;
   }
-
 }

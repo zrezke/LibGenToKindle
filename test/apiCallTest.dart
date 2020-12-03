@@ -6,9 +6,6 @@ import 'package:GenLibToKindle/backend.dart';
 
 class Test extends Backend{
   void run() async{
-    Map res = await convertApi();
-    print(res.toString() + "\n");
-    downloadFile(res["output"][0]["uri"]);
   }
 }
 
