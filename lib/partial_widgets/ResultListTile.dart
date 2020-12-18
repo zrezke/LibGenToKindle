@@ -33,7 +33,7 @@ class ResultListTile extends StatelessWidget{
   final Utils utils = Utils(); 
 
 
-/// SO BASICALLY I SKULLFUCKED THE WHOLE SYSTEM XD
+  // Nothing to see here :)
   @override
   Widget build(BuildContext context) {
     bookData = {
@@ -96,7 +96,7 @@ class ResultListTile extends StatelessWidget{
                         onPressed: () {
                           String request = utils.buildRequest(type: "download", link: mirrors[0]);
                           callback(
-                            backend.downloadFile(request, title, fileType));
+                            backend.downloadFile(request, title, fileType, context));
                         },
                       ),
                       Text(

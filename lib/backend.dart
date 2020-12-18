@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:random_string/random_string.dart';
 import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /// ADD KEY
 class Backend {
@@ -11,6 +13,7 @@ class Backend {
   Dio dio = new Dio();
   Future <Map> apiCall(String request) async{
     try{
+      print(request);
       Response response = await dio.get(
         request,
         options: Options(
@@ -22,7 +25,7 @@ class Backend {
 
 
     if (response.statusCode == 200) { 
-      Map result = Map.castFrom(response.data) as Map;
+      Map result = Map.castFrom(response.data);
       return result;
     }
     else {
@@ -95,9 +98,27 @@ class Backend {
   }
 
   /// WORK ON THIS ERROR: ADD PERMISSIONS TO WRITE FILES
-  void downloadFile(String uri, String title, String fileExt) async{
-    Response downloadLink = await dio.get(uri); 
-    await dio.download(downloadLink.toString(), new File("download/$title.$fileExt"));
+  Future downloadFile(String uri, String title, String fileExt, BuildContext context) async{
+    PermissionHandler permissionHandler = new PermissionHandler();
+    var storagePermission = await permissionHandler.requestPermissions([PermissionGroup.storage]);
+    if (storagePermission[PermissionGroup.storage] == PermissionStatus.granted) {
+      Directory dir = await getExternalStorageDirectory();
+      final String _dirPath = dir.path;
+      final String absDir = await new Directory("$_dirPath/donwloads")
+        .create(recursive: true)
+        .then((Directory directory) {
+          return directory.absolute.path;
+      });
+      Response downloadLink = await dio.get(uri); 
+      return dio.download(downloadLink.toString(), "$absDir/$title.$fileExt");
+    }
+    else  {
+      Scaffold.of(context).showSnackBar(SnackBar(
+        content: Text("Enable file system permissions to use this functionality")
+      ));
+      return null;
+    }
+
   }
 
 }

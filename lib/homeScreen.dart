@@ -25,7 +25,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void callback(Future _apicall) {
-    print(_apicall);
     setState(() {
       apiCall = _apicall;
     });
@@ -139,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _previousData = data.data;
           List keys = data.data.keys.toList();
           
-          /// If: no usable info from API
+          // If: no usable info from API
           if (keys.contains("Message")) {
             returnWidget = 
             WillPopScope(
